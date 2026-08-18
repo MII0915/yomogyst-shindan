@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>冷えタイプ診断 ─ あなたに合う温まり方は？</title>
+<meta name="description" content="8問・約1分であなたの冷えタイプを診断。冷え性じゃないと思ってる人ほど、一度チェックしてみて。" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%BF%3C/text%3E%3C/svg%3E" />
+<style>
+  :root{
+    --bg:#F8F7F2;
+    --paper:#FFFFFF;
+    --ink:#33352E;
+    --ink-soft:#6C6E63;
+    --ink-faint:#9A9B90;
+    --line:#E5E4DA;
+    --sage:#7B8A67;
+    --sage-deep:#54604A;
+    --sage-soft:#EDF0E6;
+    /* 上質さの差し色（Bさん監修：面塗りせず線・点で数箇所だけ） */
+    --gold:#B9975B;
+    --gold-soft:#EFE7D4;
+    /* タイプ・キーカラー（Bさん監修：紫・黄緑の彩度を半歩下げて調和） */
+    --coral:#DE8A6B;   --coral-bg:#FBEDE6;
+    --amber:#C6923E;   --amber-bg:#F5EEDD;
+    --wist:#8079AD;    --wist-bg:#ECE9F3;
+    --moegi:#7CA254;   --moegi-bg:#EBF1DD;
+    --serif:"Zen Old Mincho","Yu Mincho","YuMincho","Hiragino Mincho ProN",serif;
+    --sans:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","Yu Gothic",-apple-system,sans-serif;
+    --shadow:0 20px 50px -30px rgba(58,66,44,.35);
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans);color:var(--ink);background:var(--bg);
+    line-height:1.85;-webkit-font-smoothing:antialiased;letter-spacing:.02em;
+    min-height:100vh;
+  }
+  .app{max-width:720px;margin:0 auto;position:relative}
+  @media(min-width:768px){.app{max-width:640px}}
+  @media(min-width:1024px){.app{max-width:720px}}
+
+  .screen{display:none}
+  .screen.active{display:block;animation:fade .18s ease both}
+  /* #landing/#quiz/#loading はID指定でdisplay:flexを持つため、
+     非activeを:not(.active)で明示的に隠す（詳細度でID指定を上書き）。これが無いと全画面が積み重なって表示される */
+  #landing:not(.active),#quiz:not(.active),#loading:not(.active),#profile:not(.active){display:none}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  @media(prefers-reduced-motion:reduce){.screen.active{animation:none}}
+
+  /* ---------- ① LANDING ---------- */
+  #landing{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;text-align:center;padding:40px 26px calc(40px + var(--safe-b))}
+  .lp-chars{display:flex;justify-content:center;align-items:flex-end;gap:2px;margin-bottom:12px;position:relative}
+  .lp-chars::before{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    width:80%;max-width:300px;aspect-ratio:16/10;z-index:0;
+    background:radial-gradient(ellipse at center,rgba(185,151,91,.14),transparent 66%)}
+  .lp-chars img{position:relative;z-index:1;width:clamp(52px,15.5vw,66px);height:auto;object-fit:contain}
+  .lp-chars img:first-child{transform:translateY(3px) rotate(-4deg)}
+  .lp-chars img:last-child{transform:translateY(3px) rotate(4deg)}
+  .lp-eyebrow{display:flex;align-items:center;justify-content:center;gap:12px;font-family:var(--serif);
+    font-size:13px;letter-spacing:.26em;color:var(--sage);margin-bottom:16px}
+  .lp-eyebrow i{width:26px;height:1px;background:var(--gold);display:inline-block}
+  #landing h1{font-family:var(--serif);font-weight:500;font-size:clamp(28px,7.4vw,40px);
+    color:var(--sage-deep);line-height:1.5;margin-bottom:18px}
+  #landing .sub{font-size:15px;color:var(--ink-soft);max-width:400px;margin:0 auto 30px;line-height:1.9}
+  #landing .aux{font-size:12px;color:var(--ink-faint);letter-spacing:.06em;margin-top:26px}
+  .start-btn{border:none;cursor:pointer;font-family:var(--sans);background:var(--sage-deep);color:#fff;
+    font-size:16px;font-weight:600;letter-spacing:.14em;padding:18px 60px;border-radius:100px;
+    transition:transform .2s ease,background .2s ease;box-shadow:0 16px 30px -14px rgba(84,96,74,.7)}
+  .start-btn:hover{background:var(--sage);transform:translateY(-2px)}
+  .start-btn:focus-visible{outline:3px solid var(--coral);outline-offset:3px}
+  .start-btn:disabled{background:var(--line);color:#b7ae9d;cursor:not-allowed;box-shadow:none;transform:none}
+
+  /* ---------- 年代・性別ページ ---------- */
+  #profile{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;justify-content:center;
+    padding:40px 26px calc(40px + var(--safe-b))}
+  .pf-head{text-align:center;margin-bottom:34px}
+  .pf-eyebrow{font-size:11.5px;letter-spacing:.24em;color:var(--coral);margin-bottom:12px}
+  .pf-title{font-family:var(--serif);font-weight:500;font-size:clamp(19px,4.8vw,24px);color:var(--sage-deep);line-height:1.5;text-wrap:balance}
+  .pf-group{margin-bottom:26px}
+  .pf-label{font-family:var(--serif);font-size:14px;color:var(--sage-deep);letter-spacing:.1em;
+    margin-bottom:14px;display:flex;align-items:center;justify-content:center}
+  .pf-label i{font-style:normal;font-size:9.5px;font-weight:600;color:#fff;background:var(--coral);
+    margin-left:10px;letter-spacing:.08em;padding:2px 8px;border-radius:100px}
+  .pills{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+  .pill{cursor:pointer;font-family:var(--sans);font-size:14px;color:var(--ink-soft);background:var(--paper);
+    border:1.5px solid var(--line);border-radius:100px;padding:11px 20px;transition:all .18s ease}
+  .pill:hover{border-color:var(--sage)}
+  .pill:focus-visible{outline:3px solid var(--coral);outline-offset:2px}
+  .pill.on{background:var(--sage);border-color:var(--sage);color:#fff;font-weight:600}
+  .age-input{display:flex;align-items:center;justify-content:center;gap:7px}
+  .age-input input{width:74px;font-family:var(--serif);font-size:23px;color:var(--sage-deep);text-align:center;
+    background:var(--paper);border:1.5px solid var(--line);border-radius:11px;padding:7px 6px;transition:border-color .18s ease}
+  .age-input input:focus{outline:none;border-color:var(--sage)}
+  .age-input input::-webkit-outer-spin-button,.age-input input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .age-input input[type=number]{-moz-appearance:textfield;appearance:textfield}
+  .age-unit{font-family:var(--serif);font-size:16px;color:var(--ink-soft)}
+  .age-spin{display:flex;flex-direction:column;gap:4px;margin-left:2px}
+  .age-spin button{width:30px;height:19px;display:flex;align-items:center;justify-content:center;padding:0;
+    border:1.5px solid var(--line);border-radius:7px;background:var(--paper);color:var(--sage-deep);
+    cursor:pointer;font-size:9px;line-height:1;transition:all .15s ease}
+  .age-spin button:hover{border-color:var(--sage);background:var(--sage-soft)}
+  .age-spin button:active{transform:scale(.94)}
+  .age-spin button:focus-visible{outline:3px solid var(--coral);outline-offset:1px}
+  .pf-foot{text-align:center;margin-top:16px}
+  .pf-hint{font-size:11.5px;color:var(--ink-faint);margin-top:14px;min-height:1.2em}
+  .pf-back{margin-top:14px;border:none;background:none;cursor:pointer;color:var(--ink-soft);font-family:var(--sans);font-size:13px;padding:8px}
+  .pf-back:hover{color:var(--sage-deep)}
+  .r-profile{text-align:center;font-family:var(--serif);font-size:14px;color:var(--coral);margin:8px 0 14px;letter-spacing:.04em}
+
+  /* ---------- ② QUIZ ---------- */
+  #quiz{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;
+    padding:0 22px calc(24px + var(--safe-b))}
+  .q-head{padding:20px 0 4px;position:sticky;top:0;background:linear-gradient(var(--bg) 76%,transparent);z-index:5}
+  .q-bar-row{display:flex;align-items:center;gap:14px;margin-bottom:6px}
+  .backbtn{flex:0 0 auto;border:none;background:none;cursor:pointer;color:var(--ink-soft);
+    font-family:var(--sans);font-size:13px;display:inline-flex;align-items:center;gap:4px;padding:8px 4px;
+    border-radius:8px;transition:color .2s ease;visibility:hidden}
+  .backbtn:hover{color:var(--sage-deep)}
+  .backbtn.show{visibility:visible}
+  .q-remain{margin-left:auto;font-size:12px;color:var(--ink-faint);letter-spacing:.04em}
+  .q-remain b{font-family:var(--serif);font-size:15px;color:var(--sage);margin:0 1px}
+  .bar{height:5px;background:var(--line);border-radius:100px;overflow:hidden}
+  .bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--sage),var(--coral));
+    border-radius:100px;transition:width .35s cubic-bezier(.4,0,.2,1);width:8%}
+
+  .q-body{flex:1;display:flex;flex-direction:column;justify-content:center;padding:18px 0}
+  .q-num{font-family:var(--serif);font-size:13px;letter-spacing:.2em;color:var(--coral);margin-bottom:14px;text-align:center}
+  .q-text{font-family:var(--serif);font-weight:500;font-size:clamp(20px,5vw,25px);color:var(--sage-deep);
+    line-height:1.7;letter-spacing:.03em;text-align:center;margin-bottom:30px;text-wrap:balance;word-break:auto-phrase}
+  .opts{display:grid;gap:11px}
+  .opt{display:flex;align-items:center;gap:13px;min-height:56px;border:1.5px solid var(--line);
+    border-radius:14px;padding:14px 18px;background:var(--paper);cursor:pointer;text-align:left;
+    font-family:var(--sans);font-size:15px;color:var(--ink);line-height:1.5;
+    transition:border-color .18s ease,background .18s ease,transform .12s ease;width:100%}
+  .opt:hover{border-color:var(--sage)}
+  .opt:active{transform:scale(.99)}
+  .opt:focus-visible{outline:3px solid var(--coral);outline-offset:2px}
+  .opt.sel{border-color:var(--sage);background:var(--sage-soft)}
+  .opt .dot{flex:0 0 auto;width:22px;height:22px;border-radius:50%;border:1.6px solid var(--line);
+    display:flex;align-items:center;justify-content:center;transition:all .18s ease;background:#fff}
+  .opt.sel .dot{border-color:var(--sage);background:var(--sage)}
+  .opt.sel .dot::after{content:"";width:8px;height:8px;border-radius:50%;background:#fff}
+  @media(min-width:1024px){.opts.grid4{grid-template-columns:1fr 1fr}}
+
+  /* ---------- LOADING ---------- */
+  #loading{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;text-align:center;padding:40px}
+  #loading .spin{width:48px;height:48px;border:3px solid var(--line);border-top-color:var(--coral);
+    border-radius:50%;animation:sp 1s linear infinite;margin-bottom:24px}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  #loading p{font-family:var(--serif);font-size:16px;color:var(--sage);letter-spacing:.08em}
+
+  /* ---------- ③〜⑨ RESULT（スクロール連続） ---------- */
+  #result{padding:20px 22px calc(48px + var(--safe-b))}
+  .r-lead{text-align:center;font-size:11.5px;letter-spacing:.28em;color:var(--ink-faint);margin:10px 0 16px}
+
+  /* 診断カード（4:5・スクショ想定） */
+  /* 御札風フレーム（金の二重枠＋角飾り＋水引） */
+  .card{position:relative;border-radius:16px;overflow:hidden;background:#FBF7EC;
+    border:2px solid var(--gold);box-shadow:var(--shadow);padding:74px 26px 26px;text-align:center}
+  .card::before{content:"";position:absolute;inset:7px;border:1px solid var(--gold);
+    border-radius:10px;opacity:.55;pointer-events:none}
+  .card::after{content:"🌿";position:absolute;font-size:120px;opacity:.05;bottom:-24px;right:-18px;transform:rotate(14deg)}
+  .mizuhiki{position:absolute;top:15px;left:50%;transform:translateX(-50%);width:112px;height:auto;z-index:2}
+  .card-corner{position:absolute;width:42px;height:42px;z-index:2;pointer-events:none}
+  .card-corner.tl{top:8px;left:8px}
+  .card-corner.tr{top:8px;right:8px;transform:rotate(90deg)}
+  .card-corner.br{bottom:8px;right:8px;transform:rotate(180deg)}
+  .card-corner.bl{bottom:8px;left:8px;transform:rotate(270deg)}
+  .r-num{position:relative;z-index:1;font-family:var(--serif);font-size:13px;letter-spacing:.22em;color:var(--ink-soft);margin-bottom:4px}
+  .r-num .sp{color:var(--key);margin:0 9px;font-size:11px;vertical-align:1px}
+  .r-num b{font-weight:500}
+  .r-char{position:relative;z-index:1;width:118px;height:118px;background:transparent;display:flex;
+    align-items:center;justify-content:center;font-size:62px;margin:2px auto 10px;line-height:1}
+  .r-char img{max-width:100%;max-height:100%;object-fit:contain}
+  .r-badge{display:inline-block;font-family:var(--serif);font-size:12px;letter-spacing:.16em;
+    color:#fff;background:var(--key);padding:5px 16px;border-radius:100px;margin-bottom:8px}
+  .r-cold{font-size:11.5px;letter-spacing:.1em;color:var(--ink-faint);margin-bottom:12px}
+  .r-name{font-family:var(--serif);font-weight:500;font-size:clamp(25px,6.2vw,32px);color:var(--sage-deep);line-height:1.4}
+  .r-slot{display:inline-block;font-size:11.5px;color:var(--key);margin-top:12px;font-weight:600;letter-spacing:.01em;
+    white-space:nowrap;border-top:1px solid var(--gold);padding-top:12px}
+  .r-catch{font-family:var(--serif);font-size:15px;color:var(--ink);line-height:1.8;margin:18px auto 4px;max-width:380px;letter-spacing:0}
+  .share-row{text-align:center;margin:20px 0 4px}
+  .share-btn{display:inline-flex;align-items:center;gap:9px;cursor:pointer;border:1.4px solid var(--sage);
+    background:var(--paper);color:var(--sage-deep);font-family:var(--sans);font-size:15px;font-weight:600;
+    padding:14px 34px;border-radius:100px;transition:all .2s ease}
+  .share-btn:hover{background:var(--sage-deep);color:#fff}
+  .share-btn:focus-visible{outline:3px solid var(--coral);outline-offset:2px}
+  .share-btn svg{width:17px;height:17px;fill:currentColor}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);
+    background:var(--sage-deep);color:#fff;font-size:13px;padding:12px 24px;border-radius:100px;
+    opacity:0;pointer-events:none;transition:all .3s ease;z-index:50;box-shadow:var(--shadow)}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .r-wordmark{position:relative;z-index:1;font-family:var(--serif);font-size:12px;letter-spacing:.32em;color:var(--gold);margin-top:20px}
+
+  .sec{margin:38px 0 0}
+  .sec-t{font-family:var(--serif);font-size:16px;color:var(--sage-deep);text-align:center;margin-bottom:16px}
+  .scenes{display:grid;gap:10px}
+  .scene{display:flex;gap:12px;align-items:flex-start;background:var(--paper);border:1px solid var(--line);
+    border-radius:12px;padding:14px 16px;font-size:14px;color:var(--ink);line-height:1.6}
+  .scene .ck{flex:0 0 auto;color:var(--key);font-weight:700;margin-top:1px}
+
+  /* ③ スコア */
+  .score-card{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:26px 22px;margin-top:34px;text-align:center}
+  .score-lbl{font-size:12px;letter-spacing:.2em;color:var(--ink-faint);margin-bottom:8px}
+  .score-val{font-family:var(--serif);font-weight:500;line-height:1;color:var(--sage-deep);margin-bottom:4px}
+  .score-val .num{font-size:56px}
+  .score-val .pct{font-size:24px;margin-left:2px}
+  .score-track{height:8px;background:var(--line);border-radius:100px;overflow:hidden;margin:16px auto 0;max-width:300px}
+  .score-track>i{display:block;height:100%;background:linear-gradient(90deg,var(--sage),var(--coral));border-radius:100px;transition:width .8s cubic-bezier(.4,0,.2,1);width:0}
+  .score-desc{font-size:14px;color:var(--ink-soft);margin-top:16px;line-height:1.75;max-width:400px;margin-left:auto;margin-right:auto}
+  .score-warm{font-size:14px;color:var(--ink);margin-top:18px;line-height:1.9;text-align:left;
+    border-top:1px solid var(--line);padding-top:18px}
+  .score-note{font-size:11px;color:var(--ink-faint);margin:14px auto 0;line-height:1.75;letter-spacing:0;
+    text-align:center;max-width:340px}
+
+  /* ④ 温まり方 */
+  .warm{margin-top:42px}
+  .warm-eyebrow{text-align:center;font-size:11.5px;letter-spacing:.24em;color:var(--coral);margin-bottom:12px}
+  .warm-h{font-family:var(--serif);font-weight:500;font-size:clamp(21px,5vw,26px);color:var(--sage-deep);
+    text-align:center;line-height:1.5;margin-bottom:18px;text-wrap:balance}
+  .warm-body{font-size:15px;color:var(--ink);line-height:1.95;background:var(--paper);border:1px solid var(--line);
+    border-radius:16px;padding:24px 22px}
+  .warm-body p{margin-bottom:14px}
+  .warm-body p:last-child{margin-bottom:0}
+  .warm-body .em{color:var(--sage-deep);font-weight:600}
+  .point-list{list-style:none;display:grid;gap:12px;margin-top:16px;border-top:1px solid var(--line);padding-top:18px}
+  .point-list li{display:flex;gap:11px;align-items:flex-start;font-size:14px;color:var(--ink);line-height:1.7}
+  .point-list li::before{content:"🌿";flex:0 0 auto;font-size:14px;line-height:1.55}
+
+  /* ⑤ 信頼担保 */
+  .trust{margin-top:40px;text-align:center;background:var(--gold-soft);border:1px solid var(--gold);
+    border-radius:16px;padding:22px 20px}
+  .trust .tt{font-family:var(--serif);font-size:12px;letter-spacing:.14em;color:#8a6d33;margin-bottom:12px}
+  .trust ul{list-style:none;display:grid;gap:8px}
+  .trust li{font-size:13px;color:var(--ink);line-height:1.6}
+  .trust li b{color:#8a6d33;font-weight:600}
+  .trust .loc{font-size:12px;color:var(--ink-soft);margin-top:12px}
+
+  /* CTA 共通 */
+  .cta-wrap{margin-top:24px;text-align:center}
+  .price{font-family:var(--serif);font-size:15px;color:var(--sage-deep);margin-bottom:6px}
+  .price b{font-size:22px}
+  .price .from{font-size:12px;color:var(--ink-soft);font-family:var(--sans);margin-left:4px}
+  .coupon{display:inline-block;font-size:12px;color:#8a6d33;background:var(--gold-soft);border:1px dashed var(--gold);
+    border-radius:100px;padding:6px 16px;margin-bottom:16px}
+  .cta-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;
+    font-family:var(--sans);font-size:16px;font-weight:600;letter-spacing:.08em;color:#fff;background:var(--sage-deep);
+    padding:18px 40px;border-radius:100px;box-shadow:0 16px 30px -14px rgba(84,96,74,.7);
+    transition:transform .2s ease,background .2s ease;max-width:100%;white-space:nowrap}
+  .cta-btn:hover{background:var(--sage);transform:translateY(-2px)}
+  .cta-btn:focus-visible{outline:3px solid var(--coral);outline-offset:3px}
+  .cta-btn.line{background:#06C755;box-shadow:0 16px 30px -14px rgba(6,199,85,.6)}
+  .cta-btn.line:hover{background:#05b34c}
+  .cta-sub{font-size:12px;color:var(--ink-faint);margin-top:12px}
+  .hp-link{display:inline-block;margin-top:18px;font-family:var(--sans);font-size:13.5px;color:var(--sage-deep);
+    text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--gold)}
+  .hp-link:hover{color:var(--sage)}
+  .hp-link:focus-visible{outline:3px solid var(--coral);outline-offset:2px}
+
+  /* ⑦ 送る */
+  .share-sec{margin-top:44px;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:26px 22px;text-align:center}
+  .match{font-size:14px;color:var(--ink);line-height:1.7;margin-bottom:6px}
+  .match b{color:var(--key)}
+  .match-note{font-size:13px;color:var(--ink-soft);line-height:1.7;margin-bottom:8px}
+  .alone{font-size:12px;color:var(--ink-faint);margin-bottom:18px}
+  .share-btn{display:inline-flex;align-items:center;gap:8px;cursor:pointer;border:1.4px solid var(--sage);
+    background:none;color:var(--sage-deep);font-family:var(--sans);font-size:15px;font-weight:600;
+    padding:14px 30px;border-radius:100px;transition:all .2s ease}
+  .share-btn:hover{background:var(--sage-deep);color:#fff}
+  .share-btn:focus-visible{outline:3px solid var(--coral);outline-offset:2px}
+
+  /* ⑧ 不安解消＋タイプ別強み */
+  .calm{margin-top:44px}
+  .calm-list{display:grid;gap:10px;margin-bottom:22px}
+  .calm-list li{list-style:none;display:flex;gap:12px;align-items:flex-start;font-size:14px;color:var(--ink);line-height:1.7}
+  .calm-list li::before{content:"✓";flex:0 0 auto;color:var(--sage);font-weight:700}
+  .pillars{margin-top:26px}
+  .pillar-list{list-style:none;display:grid;gap:12px;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:22px 20px}
+  .pillar-list li{display:flex;gap:11px;align-items:flex-start;font-size:14px;color:var(--ink);line-height:1.7}
+  .pillar-list li::before{content:"🌿";flex:0 0 auto;font-size:14px;line-height:1.55}
+  .strength{margin-top:26px;background:var(--sage-soft);border:1px solid var(--line);border-radius:14px;padding:20px 20px}
+  .strength .st{font-family:var(--serif);font-size:14px;color:var(--sage-deep);margin-bottom:12px;text-align:center}
+  .strength ul{list-style:none;display:grid;gap:9px}
+  .strength li{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;color:var(--ink);line-height:1.65}
+  .strength li::before{content:"🌿";flex:0 0 auto;font-size:14px}
+
+  /* ⑨ 免責 */
+  .disclaimer{margin-top:32px;font-size:12.5px;color:var(--ink-soft);line-height:1.85;
+    border:1px solid var(--line);border-radius:12px;padding:18px 18px;background:var(--paper)}
+  .disclaimer b{display:block;color:var(--ink);font-size:12.5px;margin-bottom:6px;font-weight:600}
+
+  .retake{text-align:center;margin-top:30px}
+  .retake button{border:1.4px solid var(--line);background:none;color:var(--ink-soft);cursor:pointer;
+    font-family:var(--sans);font-size:13.5px;padding:12px 28px;border-radius:100px;transition:all .2s ease}
+  .retake button:hover{border-color:var(--sage);color:var(--sage-deep)}
+
+  .foot{text-align:center;font-size:11px;color:var(--ink-faint);margin-top:26px;line-height:1.8}
+
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);
+    background:var(--sage-deep);color:#fff;font-size:13px;padding:12px 24px;border-radius:100px;
+    opacity:0;pointer-events:none;transition:all .3s ease;z-index:50;box-shadow:var(--shadow)}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ============ ① LANDING ============ -->
+  <section class="screen active" id="landing">
+    <div class="lp-eyebrow"><i></i>冷えタイプ診断<i></i></div>
+    <h1>あなたに合う<br>温まり方は？</h1>
+    <p class="sub">冷え性じゃないと思ってる人ほど、<br>一度チェックしてみて。</p>
+    <button class="start-btn" id="startBtn">診断をはじめる</button>
+    <p class="aux">8問・約1分　／　メールアドレス不要</p>
+  </section>
+
+  <!-- ============ ② QUIZ ============ -->
+  <section class="screen" id="quiz">
+    <div class="q-head">
+      <div class="q-bar-row">
+        <button class="backbtn" id="backBtn" aria-label="前の設問に戻る">‹ 戻る</button>
+        <span class="q-remain">あと <b id="remain">12</b> 問</span>
+      </div>
+      <div class="bar"><i id="bar"></i></div>
+    </div>
+    <div class="q-body">
+      <div class="q-num" id="qNum"></div>
+      <h2 class="q-text" id="qText"></h2>
+      <div class="opts" id="opts"></div>
+    </div>
+  </section>
+
+  <!-- ============ 年代・性別（結果の直前） ============ -->
+  <section class="screen" id="profile">
+    <div class="pf-head">
+      <div class="pf-eyebrow">あと少し</div>
+      <h2 class="pf-title">最後に、あなたのことを<br>教えてください</h2>
+    </div>
+    <div class="pf-group">
+      <div class="pf-label">年齢</div>
+      <div class="age-input">
+        <input type="number" id="ageInput" value="25" min="1" max="120" inputmode="numeric" aria-label="年齢" />
+        <span class="age-unit">歳</span>
+        <div class="age-spin">
+          <button type="button" id="ageUp" aria-label="年齢を1歳上げる">▲</button>
+          <button type="button" id="ageDown" aria-label="年齢を1歳下げる">▼</button>
+        </div>
+      </div>
+    </div>
+    <div class="pf-group">
+      <div class="pf-label">性別<i>必須</i></div>
+      <div class="pills" id="genderPills"></div>
+    </div>
+    <div class="pf-foot">
+      <button class="start-btn" id="toResultBtn" disabled>結果を見る</button>
+      <p class="pf-hint" id="pfHint">年代と性別を選ぶと結果が見られます</p>
+      <button class="pf-back" id="pfBack">‹ 設問に戻る</button>
+    </div>
+  </section>
+
+  <!-- ============ LOADING ============ -->
+  <section class="screen" id="loading">
+    <div class="spin"></div>
+    <p id="loadTxt">あなたの冷えタイプを見ています…</p>
+  </section>
+
+  <!-- ============ ③〜⑨ RESULT ============ -->
+  <section class="screen" id="result">
+    <p class="r-profile" id="rProfile"></p>
+    <!-- 診断カード（御札風フレーム＋水引・③タイプ＋時間帯サブラベル） -->
+    <div class="card" id="card">
+      <svg class="mizuhiki" viewBox="0 0 160 66" aria-hidden="true">
+        <g fill="none" stroke="var(--gold)" stroke-width="3.4" stroke-linecap="round">
+          <path d="M80 33 C80 9 40 9 40 33 C40 57 80 57 80 33 C80 9 120 9 120 33 C120 57 80 57 80 33"/>
+          <path d="M80 19 C63 19 63 47 80 47 C97 47 97 19 80 19"/>
+        </g>
+        <path fill="none" stroke="#E8D08A" stroke-width="1.1" stroke-linecap="round"
+          d="M80 33 C80 9 40 9 40 33 C40 57 80 57 80 33 C80 9 120 9 120 33 C120 57 80 57 80 33"/>
+      </svg>
+      <svg class="card-corner tl" viewBox="0 0 46 46" aria-hidden="true"><g fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round"><path d="M8 24 C8 12 12 8 24 8"/><path d="M8 34 C8 16 16 8 34 8" opacity=".5"/></g><circle cx="14" cy="14" r="1.8" fill="var(--gold)"/></svg>
+      <svg class="card-corner tr" viewBox="0 0 46 46" aria-hidden="true"><g fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round"><path d="M8 24 C8 12 12 8 24 8"/><path d="M8 34 C8 16 16 8 34 8" opacity=".5"/></g><circle cx="14" cy="14" r="1.8" fill="var(--gold)"/></svg>
+      <svg class="card-corner br" viewBox="0 0 46 46" aria-hidden="true"><g fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round"><path d="M8 24 C8 12 12 8 24 8"/><path d="M8 34 C8 16 16 8 34 8" opacity=".5"/></g><circle cx="14" cy="14" r="1.8" fill="var(--gold)"/></svg>
+      <svg class="card-corner bl" viewBox="0 0 46 46" aria-hidden="true"><g fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round"><path d="M8 24 C8 12 12 8 24 8"/><path d="M8 34 C8 16 16 8 34 8" opacity=".5"/></g><circle cx="14" cy="14" r="1.8" fill="var(--gold)"/></svg>
+      <div class="r-char" id="rChar"></div>
+      <div class="r-badge" id="rBadge"></div>
+      <div class="r-cold" id="rCold"></div>
+      <h2 class="r-name" id="rName"></h2>
+      <div class="r-slot" id="rSlot"></div>
+      <p class="r-catch" id="rCatch"></p>
+      <div class="r-wordmark">yomogyst</div>
+    </div>
+
+    <!-- 共有ボタン -->
+    <div class="share-row">
+      <button class="share-btn" id="shareBtn">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>
+        結果をシェアする
+      </button>
+    </div>
+
+    <!-- ③ こんなあなた -->
+    <div class="sec">
+      <div class="sec-t">こんなあなた</div>
+      <div class="scenes" id="rScenes"></div>
+    </div>
+
+    <!-- ③ 温めしろスコア -->
+    <div class="score-card">
+      <div class="score-val"><span class="num" id="rScore">0</span><span class="pct">%</span></div>
+      <div class="score-track"><i id="scoreBar"></i></div>
+      <p class="score-desc" id="rScoreDesc"></p>
+      <p class="score-warm" id="rWarm"></p>
+    </div>
+    <p class="score-note">※生活習慣に関する回答から算出した指標です。<br>体質や健康状態を判定するものではありません。</p>
+
+    <!-- ④ よもぎ蒸しのおすすめポイント（よもぎ蒸し初登場） -->
+    <div class="warm">
+      <div class="warm-body">
+        <p class="warm-eyebrow">RECOMMENDED POINTS</p>
+        <h3 class="warm-h">yomogystの<br>おすすめポイント</h3>
+        <ul class="point-list">
+          <li>国産・無農薬のいい香りのよもぎ</li>
+          <li>安心の「食べられるよもぎ蒸し®」</li>
+          <li>毎回のお手入れもアルコール不使用</li>
+          <li>こだわりの檜の椅子で、じっくり</li>
+          <li>おしゃれな完全プライベート個室</li>
+          <li>15分から。男性・カップルも歓迎</li>
+        </ul>
+      </div>
+    </div>
+
+
+    <!-- ⑧ 不安解消＋タイプ別の強み -->
+    <div class="calm">
+      <div class="sec-t">はじめてでも、安心です</div>
+      <ul class="calm-list">
+        <li>服を脱ぐ必要はありません（専用のマントを羽織って座るだけ）</li>
+        <li>完全個室・貸切なので、ほかのお客さんと会うことがありません</li>
+        <li>サウナのような熱風はなく、呼吸が苦しくなりません</li>
+        <li>初回は説明を含めてゆったり、2回目以降は最短30分</li>
+      </ul>
+    </div>
+
+    <!-- ⑨ CTA②（ホットペッパー ネット予約）＋公式HP＋免責 -->
+    <div class="cta-wrap">
+      <a class="cta-btn" id="cta2" href="#" rel="noopener">空いている日を見る</a>
+      <p class="cta-sub">ホットペッパービューティーへ移動します</p>
+      <a class="hp-link" id="hpLink" href="#" rel="noopener">yomogyst 公式サイトを見る →</a>
+    </div>
+
+    <div class="disclaimer">
+      <b>この診断について</b>
+      この診断は生活習慣のセルフチェックであり、医学的な診断や体質・疾患の判定を行うものではありません。気になる症状がある場合は、医療機関にご相談ください。
+    </div>
+
+    <div class="retake"><button id="retakeBtn">もう一度診断する</button></div>
+    <div class="foot">yomogyst ｜ 無農薬・無添加 食べられるよもぎ蒸し®</div>
+  </section>
+
+</div>
+<div class="toast" id="toast">結果をコピーしました🌿</div>
+
+<script>
+/* =========================================================
+   設問データ（8問）  ※Aさん監修反映＋適正本数に圧縮
+   Q1-3=タイプ判定(type) / Q4-7=温めしろスコア(sc,0-3) / Q8=時間帯(slot)
+   bonus=同点時に +0.5 するタイプ。Q4-7でA/B/C/Dを1問ずつ均等に加点し偏りを回避
+   ========================================================= */
+const QUESTIONS = [
+  { text:"朝、布団から出た瞬間。最初に「うわ」となるのは？", opts:[
+    {t:"手や足の先", type:"A"},
+    {t:"お腹や腰のあたり", type:"B"},
+    {t:"脚全体が重い感じ", type:"C"},
+    {t:"全部。とにかく起きたくない", type:"D"}
+  ]},
+  /* Q2：自覚の薄い内臓型(B)を胃腸反応から拾う（Aさん監修） */
+  { text:"冷たい飲み物やアイスを食べたあと、体はどうなりやすい？", opts:[
+    {t:"手足の先から冷えていく感じ", type:"A"},
+    {t:"お腹が重くなる・張る／ガスがたまる", type:"B"},
+    {t:"脚やお尻のあたりが冷える", type:"C"},
+    {t:"全身がだるく、冷たく感じる", type:"D"}
+  ]},
+  { text:"お風呂から出たあと、いちばん早く「また冷えてしまう」のは？", opts:[
+    {t:"手先・足先", type:"A"},
+    {t:"お腹まわり", type:"B"},
+    {t:"脚・腰", type:"C"},
+    {t:"全部いっぺんに", type:"D"},
+    {t:"湯船に入らないので分からない", type:null}
+  ]},
+  { text:"平日、同じ姿勢でいちばん長く座っている時間は？", opts:[
+    {t:"2時間未満", sc:0},
+    {t:"2〜4時間", sc:1},
+    {t:"4〜6時間", sc:2},
+    {t:"6時間以上", sc:3, bonus:"C"}
+  ]},
+  { text:"カフェで最初に頼むのは？", opts:[
+    {t:"だいたいホット", sc:0},
+    {t:"その日の気分", sc:1},
+    {t:"だいたいアイス", sc:2},
+    {t:"真冬でもアイス", sc:3, bonus:"B"}
+  ]},
+  { text:"湯船に浸かるのは？", opts:[
+    {t:"ほぼ毎日", sc:0},
+    {t:"週に2〜3回", sc:1},
+    {t:"週1回あるかどうか", sc:2},
+    {t:"シャワーで済ませている", sc:3, bonus:"A"}
+  ]},
+  { text:"最後にしっかり汗をかいたのは？", opts:[
+    {t:"今日・昨日", sc:0},
+    {t:"ここ数日", sc:1},
+    {t:"運動したときくらい", sc:2},
+    {t:"思い出せない", sc:3, bonus:"D"}
+  ]},
+  { text:"予約するとしたら、行きやすいのはいつ？", opts:[
+    {t:"朝、出かける前", slot:"朝"},
+    {t:"日中の空いた時間", slot:"昼"},
+    {t:"仕事終わりの夜", slot:"夜"},
+    {t:"深夜、寝る前", slot:"深夜"}
+  ]}
+];
+
+/* =========================================================
+   タイプ定義（§5レビュー＋Aさん根拠＋Bさん世界観 反映）
+   ========================================================= */
+const TYPES = {
+  A:{ name:"ぽかぽかチャージ型", cold:"末端冷えタイプ", badge:"ぽかぽか", key:"--coral", keyBg:"--coral-bg", img:"img/type-a-end.png",
+      catch:"あたたかさが、指先までは届かない。",
+      scenes:["夏でも靴下が手放せない","会議室のエアコンで指先の感覚がなくなる","「手つめたっ」と言われるのが定番になっている"],
+      warm:"体の中心はあたたかいのに、手足の先までは巡りきっていない——と感じる方が多いタイプ。末端を外から温めるより、座ってじっくり、内側から巡らせる時間が向いています。",
+      match:"C", matchNote:"冷えの出方が真逆なので、一緒に行くと話が盛り上がります。",
+      strength:["座り心地にこだわった、オーダーメイドの檜の椅子でじっくり","おしゃれな完全プライベート個室で、ひとりの時間を"] },
+  B:{ name:"うちがわほっと型", cold:"内臓（かくれ）冷えタイプ", badge:"ほっと", key:"--amber", keyBg:"--amber-bg", img:"img/type-b-visc.png",
+      catch:"手足は平気。だから気づかない。",
+      scenes:["手足は冷たくないので、自分が冷えているとは思っていない","冷たい飲み物を飲んだあと、お腹が重くなる","ストレスがかかると、まず胃腸に出る"],
+      warm:"手足が平気なぶん、自覚が出にくく、いちばん見過ごされやすいタイプ。お腹まわりから、じんわり長めに温める時間が向いています。",
+      match:"D", matchNote:"どちらも自覚が薄いタイプ同士。誘い合うのがちょうどいい。",
+      strength:["拘りの農場の国産・無農薬よもぎ100%「食べられるよもぎ蒸し®」","仕上げまでアルコール不使用のお手入れで、体にやさしく"] },
+  C:{ name:"めぐりスイッチ型", cold:"下半身・冷えのぼせタイプ", badge:"巡り", key:"--wist", keyBg:"--wist-bg", img:"img/type-c-lower.png",
+      catch:"冷えというより、めぐっていないだけ。",
+      scenes:["夕方になると靴がきつい","座っている時間が、1日の大半を占めている","脚がだるい日と平気な日の差が激しい"],
+      warm:"冷えというより、動かない時間の長さが関係していると感じる方が多いタイプ。腰から下を中心に温めて、切り替えるスイッチを入れる時間が向いています。",
+      match:"A", matchNote:"温もりの出方が対照的。お互いの気づきが増えます。",
+      strength:["15分から入れる手軽さ。忙しい毎日の合間に","赤羽橋駅から徒歩1分"] },
+  D:{ name:"まるごと休息型", cold:"全身・お疲れ冷えタイプ", badge:"休息", key:"--moegi", keyBg:"--moegi-bg", img:"img/type-d-whole.png",
+      catch:"温める前に、まず休む時間を。",
+      scenes:["寝ても回復した感じがしない","最後に汗をかいたのがいつか思い出せない","「疲れてる？」と聞かれて、自分でもよく分からない"],
+      warm:"部分ではなく、全身をゆっくり温めて、何もしない時間を作るのが向いているタイプ。いちばん休息が必要な人。温めることそのものより、その40分間なにもしなくていいことに意味があります。",
+      match:"B", matchNote:"どちらも自覚が薄いタイプ同士。誘い合うのがちょうどいい。",
+      strength:["完全プライベート個室で、なにもしない時間を","お客様に合わせた心地よい接客と、ステキなスタッフ"] }
+};
+
+const SLOTS = {
+  "朝":"朝ととのえ派 ─ 出かける前のひと温め",
+  "昼":"昼リセット派 ─ 日中のすいた時間に",
+  "夜":"夜ほぐし派 ─ 一日の終わりにほどく",
+  "深夜":"深夜リカバリー派 ─ 眠る前のごほうびに"
+};
+
+/* 予約リンク */
+const BOOK_URL = "https://beauty.hotpepper.jp/kr/slnH000703620/"; // ホットペッパービューティー ネット予約
+const HP_URL   = "https://yomogyst.com/";                        // 公式サイト
+
+/* ================= 状態 ================= */
+const N = QUESTIONS.length;
+const answers = new Array(N).fill(null);
+let cur = 0, resultKey = null, age = 25, gender = null;
+const GENDERS = ["女性","男性","その他"];
+const $ = id => document.getElementById(id);
+
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  $(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+$('startBtn').addEventListener('click',()=>{cur=0;renderQ();show('quiz');});
+
+function renderQ(){
+  const q = QUESTIONS[cur];
+  $('qNum').textContent = 'Q'+(cur+1)+' / '+N;
+  $('qText').textContent = q.text;
+  $('remain').textContent = N - cur;
+  $('bar').style.width = ((cur+1)/N*100)+'%';
+  $('backBtn').classList.toggle('show', cur>0);
+  const box = $('opts');
+  box.className = 'opts' + (q.opts.length===4 ? ' grid4' : '');
+  box.innerHTML = '';
+  q.opts.forEach((o,i)=>{
+    const b = document.createElement('button');
+    b.className = 'opt' + (answers[cur]===i ? ' sel' : '');
+    b.type = 'button';
+    b.innerHTML = '<span class="dot"></span><span>'+o.t+'</span>';
+    b.addEventListener('click',()=>pick(i,b));
+    box.appendChild(b);
+  });
+}
+
+let advancing = false;
+function pick(i,btn){
+  if(advancing) return;
+  answers[cur] = i;
+  $('opts').querySelectorAll('.opt').forEach(el=>el.classList.remove('sel'));
+  btn.classList.add('sel');
+  advancing = true;
+  setTimeout(()=>{
+    advancing = false;
+    if(cur < N-1){ cur++; renderQ(); }
+    else show('profile');   /* 最終問→年代・性別ページへ */
+  }, 190);
+}
+
+$('backBtn').addEventListener('click',()=>{ if(cur>0){ cur--; renderQ(); } });
+
+/* ---- 年代・性別ページ ---- */
+function buildPills(containerId,items,onPick){
+  const c=$(containerId);
+  items.forEach(v=>{
+    const b=document.createElement('button');
+    b.className='pill'; b.type='button'; b.textContent=v;
+    b.addEventListener('click',()=>{
+      [...c.children].forEach(x=>x.classList.remove('on'));
+      b.classList.add('on'); onPick(v); updateProfile();
+    });
+    c.appendChild(b);
+  });
+}
+buildPills('genderPills',GENDERS,v=>gender=v);
+$('ageInput').addEventListener('input',()=>{
+  const v = parseInt($('ageInput').value,10);
+  age = (v>=1 && v<=120) ? v : null;
+  updateProfile();
+});
+function setAge(v){ v=Math.max(1,Math.min(120,v)); age=v; $('ageInput').value=v; updateProfile(); }
+$('ageUp').addEventListener('click',()=>setAge((age||25)+1));
+$('ageDown').addEventListener('click',()=>setAge((age||25)-1));
+function updateProfile(){
+  const ok = age && gender;
+  $('toResultBtn').disabled = !ok;
+  $('pfHint').textContent = ok ? '準備OK！結果を見てみましょう'
+    : (!age ? '年齢を入力してください' : '性別を選ぶと結果が見られます');
+}
+$('toResultBtn').addEventListener('click',()=>{ if(age&&gender) finish(); });
+$('pfBack').addEventListener('click',()=>{ show('quiz'); renderQ(); });
+
+/* ================= 判定（Aさん監修） ================= */
+function judge(){
+  const c = {A:0,B:0,C:0,D:0};
+  for(let i=0;i<3;i++){ const o=QUESTIONS[i].opts[answers[i]]; if(o.type) c[o.type]++; }
+  /* Q4(+C)/Q5(+B)/Q6(+A)/Q7(+D) を +0.5（4タイプ均等） */
+  [3,4,5,6].forEach(i=>{ const o=QUESTIONS[i].opts[answers[i]]; if(o.bonus) c[o.bonus]+=0.5; });
+  const max = Math.max(c.A,c.B,c.C,c.D);
+  const tied = ['A','B','C','D'].filter(k=>c[k]===max);
+  let type;
+  if(tied.length===1){ type = tied[0]; }
+  else { const q1 = QUESTIONS[0].opts[answers[0]].type; type = tied.includes(q1) ? q1 : tied[0]; }
+  /* 温めしろスコア：Q4〜Q7（4問×3点=12点満点）→ 40〜95% */
+  let sum = 0;
+  for(let i=3;i<=6;i++){ sum += (QUESTIONS[i].opts[answers[i]].sc || 0); }
+  const score = Math.round(40 + (sum/12)*55);
+  const slot = QUESTIONS[7].opts[answers[7]].slot;
+  return {type, score, slot};
+}
+
+function scoreDesc(score){
+  if(score >= 75) return "温める時間を足したとき、変化をいちばん感じやすい状態です。";
+  if(score >= 55) return "少し温める時間を足すと、心地よさが変わってきそうです。";
+  return "いまは余裕のある状態。ときどき温める時間を持てると、ちょうどいいバランスです。";
+}
+
+/* ================= 結果描画 ================= */
+function finish(){
+  show('loading');
+  let t=0;
+  const msgs=['あなたの冷えタイプを見ています…','冷えの出方を読み解いています…','結果をまとめています…'];
+  const iv=setInterval(()=>{t++;if(t<msgs.length)$('loadTxt').textContent=msgs[t];},520);
+  setTimeout(()=>{ clearInterval(iv); render(judge()); show('result'); }, 1600);
+}
+
+function render({type,score,slot}){
+  resultKey = type;
+  const T = TYPES[type];
+  const card = $('card');
+  card.style.setProperty('--key', 'var('+T.key+')');
+  card.style.setProperty('--key-bg', 'var('+T.keyBg+')');
+
+  $('rProfile').textContent = (age&&gender) ? age+'歳・'+gender+'のあなたは——' : '';
+  $('rChar').innerHTML = '<img src="'+T.img+'" alt="'+T.name+'のキャラクター" />';
+  $('rBadge').textContent = T.badge;
+  $('rCold').textContent = '冷えの分類：'+T.cold;
+  $('rName').textContent = T.name;
+  $('rSlot').textContent = SLOTS[slot];
+  $('rCatch').textContent = T.catch;
+
+  const sc = $('rScenes'); sc.innerHTML = '';
+  T.scenes.forEach(s=>{
+    const d=document.createElement('div'); d.className='scene';
+    d.style.setProperty('--key','var('+T.key+')');
+    d.innerHTML='<span class="ck">✓</span><span>'+s+'</span>';
+    sc.appendChild(d);
+  });
+
+  $('rScore').textContent = score;
+  $('rScoreDesc').textContent = scoreDesc(score);
+  const sb = $('scoreBar'); sb.style.width='0'; void sb.offsetWidth; sb.style.width = score+'%';
+
+  $('rWarm').textContent = T.warm;
+
+  /* ⑨ 予約リンク（ホットペッパー）＋公式HP */
+  $('cta2').href = BOOK_URL;
+  $('hpLink').href = HP_URL;
+}
+
+/* ================= 結果をシェア ================= */
+function shareText(){
+  const t = TYPES[resultKey];
+  return '私の冷えタイプは「'+t.name+'（'+t.cold+'）」でした🌿\nあなたの冷えタイプは？ 冷えタイプ診断';
+}
+$('shareBtn').addEventListener('click',async()=>{
+  const url = location.href.split('?')[0];
+  try{
+    if(navigator.share){ await navigator.share({text:shareText(), url:url}); return; }
+    await navigator.clipboard.writeText(shareText()+'\n'+url);
+  }catch(e){ /* キャンセル等は無視 */ }
+  const to=$('toast'); to.classList.add('show'); setTimeout(()=>to.classList.remove('show'),1800);
+});
+
+/* ================= retake ================= */
+$('retakeBtn').addEventListener('click',()=>{
+  answers.fill(null); cur=0; resultKey=null; age=25; gender=null;
+  document.querySelectorAll('.pill.on').forEach(el=>el.classList.remove('on'));
+  $('ageInput').value='25';
+  updateProfile();
+  $('scoreBar').style.width='0';
+  show('landing');
+});
+</script>
+</body>
+</html>
