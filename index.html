@@ -571,16 +571,44 @@ let cur = 0, resultKey = null, age = 25, gender = null;
 const GENDERS = ["女性","男性","その他"];
 const $ = id => document.getElementById(id);
 
+/* ================= Supabase ログ ================= */
+/* anon(公開)キー。RLSでINSERT専用のため公開して問題なし（読み取り不可） */
+const SUPABASE_URL  = "https://oaiihlwffjhhwaabkmtb.supabase.co";
+const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9haWlobHdmZmpoaHdhYWJrbXRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwNDU2ODUsImV4cCI6MjEwMjYyMTY4NX0.D1i_W3H1xcRshfZLZo35uuqJcACT-DrxwkS1D9DpF2g";
+let sessionId = (self.crypto && crypto.randomUUID) ? crypto.randomUUID() : null;
+let maxQ = 0, completed = false;
+function supaPost(table,row,keepalive){
+  try{
+    fetch(SUPABASE_URL+'/rest/v1/'+table,{
+      method:'POST',
+      headers:{apikey:SUPABASE_ANON,Authorization:'Bearer '+SUPABASE_ANON,'Content-Type':'application/json',Prefer:'return=minimal'},
+      body:JSON.stringify(row),
+      keepalive:!!keepalive
+    }).catch(function(){});
+  }catch(e){}
+}
+function logEvent(event,extra,keepalive){
+  supaPost('diagnosis_events',Object.assign({session_id:sessionId,event:event,referrer:document.referrer||null},extra||{}),keepalive);
+}
+function logResult(row){
+  supaPost('diagnosis_results',Object.assign({session_id:sessionId,referrer:document.referrer||null},row));
+}
+
 function show(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   $(id).classList.add('active');
   window.scrollTo(0,0);
 }
 
-$('startBtn').addEventListener('click',()=>{cur=0;renderQ();show('quiz');});
+$('startBtn').addEventListener('click',()=>{
+  sessionId = (self.crypto && crypto.randomUUID) ? crypto.randomUUID() : sessionId;
+  maxQ=0; completed=false; logEvent('start');
+  cur=0; renderQ(); show('quiz');
+});
 
 function renderQ(){
   const q = QUESTIONS[cur];
+  maxQ = Math.max(maxQ, cur+1);
   $('qNum').textContent = 'Q'+(cur+1)+' / '+N;
   $('qText').textContent = q.text;
   $('remain').textContent = N - cur;
@@ -712,6 +740,15 @@ function render({type,score,slot}){
   /* ⑨ 予約リンク（ホットペッパー）＋公式HP */
   $('cta2').href = BOOK_URL;
   $('hpLink').href = HP_URL;
+
+  /* Supabase：完了ログ */
+  if(!completed){
+    completed = true;
+    const answersObj = {};
+    QUESTIONS.forEach((q,i)=>{ answersObj['q'+(i+1)] = (answers[i]!=null ? q.opts[answers[i]].t : null); });
+    logResult({type:type, time_slot:slot, score:score, age:age, gender:gender, answers:answersObj});
+    logEvent('complete',{q_index:N});
+  }
 }
 
 /* ================= 結果をシェア ================= */
@@ -720,6 +757,7 @@ function shareText(){
   return '私の冷えタイプは「'+t.name+'（'+t.cold+'）」でした🌿\nあなたの冷えタイプは？ 冷えタイプ診断';
 }
 $('shareBtn').addEventListener('click',async()=>{
+  logEvent('share');
   const url = location.href.split('?')[0];
   try{
     if(navigator.share){ await navigator.share({text:shareText(), url:url}); return; }
@@ -737,6 +775,11 @@ $('retakeBtn').addEventListener('click',()=>{
   $('scoreBar').style.width='0';
   show('landing');
 });
+
+/* ================= ログ：予約クリック・離脱地点 ================= */
+$('cta2').addEventListener('click',()=>logEvent('cta_reserve',{},true));
+$('hpLink').addEventListener('click',()=>logEvent('cta_hp',{},true));
+window.addEventListener('pagehide',()=>{ if(maxQ>0 && !completed) logEvent('abandon',{q_index:maxQ},true); });
 </script>
 </body>
 </html>
