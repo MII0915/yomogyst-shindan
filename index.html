@@ -129,7 +129,7 @@
   .q-body{flex:1;display:flex;flex-direction:column;justify-content:center;padding:18px 0}
   .q-num{font-family:var(--serif);font-size:13px;letter-spacing:.2em;color:var(--coral);margin-bottom:14px;text-align:center}
   .q-text{font-family:var(--serif);font-weight:500;font-size:clamp(20px,5vw,25px);color:var(--sage-deep);
-    line-height:1.7;letter-spacing:.03em;text-align:center;margin-bottom:30px;text-wrap:balance;word-break:auto-phrase}
+    line-height:1.7;letter-spacing:.03em;text-align:center;margin-bottom:30px;text-wrap:balance;word-break:auto-phrase;white-space:pre-line}
   .opts{display:grid;gap:11px}
   .opt{display:flex;align-items:center;gap:13px;min-height:56px;border:1.5px solid var(--line);
     border-radius:14px;padding:14px 18px;background:var(--paper);cursor:pointer;text-align:left;
@@ -230,6 +230,17 @@
   .point-list{list-style:none;display:grid;gap:12px;margin-top:16px;border-top:1px solid var(--line);padding-top:18px}
   .point-list li{display:flex;gap:11px;align-items:flex-start;font-size:14px;color:var(--ink);line-height:1.7}
   .point-list li::before{content:"🌿";flex:0 0 auto;font-size:14px;line-height:1.55}
+
+  /* ★ おうちでできる、あなたの温活 */
+  .homecare{margin-top:42px}
+  .homecare-lead{text-align:center;font-size:14px;color:var(--ink-soft);line-height:1.8;margin-bottom:16px;text-wrap:balance}
+  .hc-list{margin-top:0;border-top:0;padding-top:0}
+  .hc-list li{align-items:flex-start}
+  .hc-list .hc-item{display:flex;flex-direction:column;gap:3px;min-width:0}
+  .hc-list .hc-t{color:var(--sage-deep);font-weight:600}
+  .hc-list .hc-d{color:var(--ink)}
+  .homecare-bridge{text-align:center;font-family:var(--serif);font-size:13.5px;color:var(--sage-deep);
+    line-height:1.95;margin:22px auto 0;max-width:400px;letter-spacing:.02em}
 
   /* ⑤ 信頼担保 */
   .trust{margin-top:40px;text-align:center;background:var(--gold-soft);border:1px solid var(--gold);
@@ -417,6 +428,19 @@
     </div>
     <p class="score-note">※生活習慣に関する回答から算出した指標です。<br>体質や健康状態を判定するものではありません。</p>
 
+    <!-- ★ おうちでできる、あなたの温活（タイプ別・新規） -->
+    <div class="homecare" id="homecare">
+      <p class="warm-eyebrow">HOME CARE</p>
+      <h3 class="warm-h">おうちでできる、<br>あなたの温活</h3>
+      <p class="homecare-lead" id="hcLead"></p>
+      <div class="warm-body">
+        <ul class="point-list hc-list" id="hcList"></ul>
+      </div>
+    </div>
+
+    <!-- ★ ブリッジ文（おうちtips → サロンへ・新規／常時表示） -->
+    <p class="homecare-bridge" id="homecareBridge">おうちの習慣は、冷えとつきあう毎日の味方。<br>でも、芯までじっくりあたためる時間は、ひとりだとなかなか取れないもの。<br>その“ととのえ時間”は、yomogyst で。</p>
+
     <!-- ④ よもぎ蒸しのおすすめポイント（よもぎ蒸し初登場） -->
     <div class="warm">
       <div class="warm-body">
@@ -438,7 +462,7 @@
     <div class="calm">
       <div class="sec-t">はじめてでも、安心です</div>
       <ul class="calm-list">
-        <li>専用のマントを羽織って座るスタイル。全身がすっぽり隠れるので、肌を見られる心配はありません</li>
+        <li>専用のマントを羽織って座るスタイル。全身がすっぽり隠れます</li>
         <li>完全個室・貸切なので、ほかのお客さんと会うことがありません</li>
         <li>下から蒸気の温かさが届きますが、自分であたり方を調整できます。熱すぎて苦しくなる心配はありません</li>
       </ul>
@@ -470,14 +494,14 @@
    bonus=同点時に +0.5 するタイプ。Q4-7でA/B/C/Dを1問ずつ均等に加点し偏りを回避
    ========================================================= */
 const QUESTIONS = [
-  { text:"朝、布団から出た瞬間。最初に「うわ」となるのは？", opts:[
+  { text:"朝、布団のぬくもりから出たとき。\n最初に冷えを感じるのは？", opts:[
     {t:"手や足の先", type:"A"},
     {t:"お腹や腰のあたり", type:"B"},
     {t:"脚全体が重い感じ", type:"C"},
     {t:"全部。とにかく起きたくない", type:"D"}
   ]},
   /* Q2：自覚の薄い内臓型(B)を胃腸反応から拾う（Aさん監修） */
-  { text:"冷たい飲み物やアイスを食べたあと、体はどうなりやすい？", opts:[
+  { text:"冷たい飲み物やアイスのあと、\n体はどうなりやすい？", opts:[
     {t:"手足の先から冷えていく感じ", type:"A"},
     {t:"お腹が重くなる・張る／ガスがたまる", type:"B"},
     {t:"脚やお尻のあたりが冷える", type:"C"},
@@ -514,7 +538,7 @@ const QUESTIONS = [
     {t:"運動したときくらい", sc:2},
     {t:"思い出せない", sc:3, bonus:"D"}
   ]},
-  { text:"予約するとしたら、行きやすいのはいつ？", opts:[
+  { text:"温活の時間をとるなら、いつが行きやすい？", opts:[
     {t:"朝、出かける前", slot:"朝"},
     {t:"日中の空いた時間", slot:"昼"},
     {t:"仕事終わりの夜", slot:"夜"},
@@ -531,25 +555,49 @@ const TYPES = {
       scenes:["夏でも靴下が手放せない","会議室のエアコンで指先の感覚がなくなる","「手つめたっ」と言われるのが定番になっている"],
       warm:"体の中心はあたたかいのに、手足の先までは巡りきっていない——と感じる方が多いタイプ。末端を外から温めるより、座ってじっくり、内側から巡らせる時間が向いています。",
       match:"C", matchNote:"冷えの出方が真逆なので、一緒に行くと話が盛り上がります。",
-      strength:["座り心地にこだわった、オーダーメイドの檜の椅子でじっくり","おしゃれな完全プライベート個室で、ひとりの時間を"] },
+      strength:["座り心地にこだわった、オーダーメイドの檜の椅子でじっくり","おしゃれな完全プライベート個室で、ひとりの時間を"],
+      homecareLead:"末端まで巡らせる、小さな習慣から。",
+      homecare:[
+        {t:"手首・足首をカバー", d:"靴下やレッグウォーマーで、外気に触れやすい手首・足首をやさしく包む習慣を。"},
+        {t:"一杯の白湯から", d:"朝いちばんや、冷えを感じたときに。温かい飲み物で内側からひと息。しょうが入りもおすすめです。"},
+        {t:"お風呂は“ぬるめ”をゆっくり", d:"40℃前後のお湯に、指先までじんわり浸かる時間を。"}
+      ] },
   B:{ name:"うちがわほっと型", cold:"内臓（かくれ）冷えタイプ", badge:"ほっと", key:"--amber", keyBg:"--amber-bg", img:"img/type-b-visc.png",
       catch:"手足は平気。だから気づかない。",
       scenes:["手足は冷たくないので、自分が冷えているとは思っていない","冷たい飲み物を飲んだあと、お腹が重くなる","ストレスがかかると、まず胃腸に出る"],
       warm:"手足が平気なぶん、自覚が出にくく、いちばん見過ごされやすいタイプ。お腹まわりから、じんわり長めに温める時間が向いています。",
       match:"D", matchNote:"どちらも自覚が薄いタイプ同士。誘い合うのがちょうどいい。",
-      strength:["拘りの農場の国産・無農薬よもぎ100%「食べられるよもぎ蒸し®」","仕上げまでアルコール不使用のお手入れで、体にやさしく"] },
+      strength:["拘りの農場の国産・無農薬よもぎ100%「食べられるよもぎ蒸し®」","仕上げまでアルコール不使用のお手入れで、体にやさしく"],
+      homecareLead:"気づきにくいおなかから、じんわりと。",
+      homecare:[
+        {t:"おなかに“もう一枚”", d:"腹巻きやハイウエストのインナーで、おなかまわりをあたためる習慣を。"},
+        {t:"冷たい飲みものは、少しお休み", d:"常温か温かいものを選んで、内側から冷やさない工夫を。"},
+        {t:"具だくさんの、温かい汁物", d:"味噌汁やスープを一品足して、おなかにやさしい食卓に。"}
+      ] },
   C:{ name:"めぐりスイッチ型", cold:"下半身・冷えのぼせタイプ", badge:"巡り", key:"--wist", keyBg:"--wist-bg", img:"img/type-c-lower.png",
       catch:"冷えというより、めぐっていないだけ。",
       scenes:["夕方になると靴がきつい","座っている時間が、1日の大半を占めている","脚がだるい日と平気な日の差が激しい"],
       warm:"冷えというより、動かない時間の長さが関係していると感じる方が多いタイプ。腰から下を中心に温めて、切り替えるスイッチを入れる時間が向いています。",
       match:"A", matchNote:"温もりの出方が対照的。お互いの気づきが増えます。",
-      strength:["15分から入れる手軽さ。忙しい毎日の合間に","赤羽橋駅から徒歩1分"] },
+      strength:["15分から入れる手軽さ。忙しい毎日の合間に","赤羽橋駅から徒歩1分"],
+      homecareLead:"止まっていた流れに、スイッチを。",
+      homecare:[
+        {t:"1時間に一度、立ち上がる", d:"座りっぱなしをリセット。かかとの上げ下げやその場足踏みで、めぐりをサポート。"},
+        {t:"足首をくるくる", d:"座ったままでもOK。足首を回して、下半身に流れのきっかけを。"},
+        {t:"半身浴で、じんわり", d:"みぞおちまでのお湯で、腰から下を中心にあたためる時間を。"}
+      ] },
   D:{ name:"まるごと休息型", cold:"全身・お疲れ冷えタイプ", badge:"休息", key:"--moegi", keyBg:"--moegi-bg", img:"img/type-d-whole.png",
       catch:"温める前に、まず休む時間を。",
       scenes:["寝ても回復した感じがしない","最後に汗をかいたのがいつか思い出せない","「疲れてる？」と聞かれて、自分でもよく分からない"],
       warm:"部分ではなく、全身をゆっくり温めて、何もしない時間を作るのが向いているタイプ。いちばん休息が必要な人。温めることそのものより、その40分間なにもしなくていいことに意味があります。",
       match:"B", matchNote:"どちらも自覚が薄いタイプ同士。誘い合うのがちょうどいい。",
-      strength:["完全プライベート個室で、なにもしない時間を","お客様に合わせた心地よい接客と、ステキなスタッフ"] }
+      strength:["完全プライベート個室で、なにもしない時間を","お客様に合わせた心地よい接客と、ステキなスタッフ"],
+      homecareLead:"温める前に、まず休むことから。",
+      homecare:[
+        {t:"まずは、早めに休む", d:"温めるより先に、睡眠を。いつもより30分早くベッドへ。"},
+        {t:"全身つかる、入浴時間", d:"シャワーだけで済ませず、肩までゆっくり湯船に。何もしない数分を。"},
+        {t:"温かい食事で、一日をしめる", d:"冷たいものより、湯気の立つ一皿を選ぶ習慣を。"}
+      ] }
 };
 
 const SLOTS = {
@@ -735,6 +783,31 @@ function render({type,score,slot}){
   const sb = $('scoreBar'); sb.style.width='0'; void sb.offsetWidth; sb.style.width = score+'%';
 
   $('rWarm').textContent = T.warm;
+
+  /* ★ おうちでできる、あなたの温活（タイプ別tips） */
+  const hcSec = $('homecare');
+  const hcList = $('hcList');
+  hcList.innerHTML = '';
+  const tips = Array.isArray(T.homecare) ? T.homecare : [];
+  tips.forEach(item=>{
+    if(!item || !item.d) return;            /* 本文欠落の行は出さない */
+    const li = document.createElement('li');
+    const wrap = document.createElement('div'); wrap.className = 'hc-item';
+    const t = document.createElement('span'); t.className = 'hc-t'; t.textContent = item.t || '';
+    const d = document.createElement('span'); d.className = 'hc-d'; d.textContent = item.d;
+    if(item.t) wrap.appendChild(t);
+    wrap.appendChild(d);
+    li.appendChild(wrap);
+    hcList.appendChild(li);
+  });
+  /* 空／未定義ならセクションごと非表示（ブリッジ文・CTAは残る） */
+  if(hcList.children.length){
+    $('hcLead').textContent = T.homecareLead || '';
+    hcSec.style.display = '';
+  }else{
+    $('hcLead').textContent = '';
+    hcSec.style.display = 'none';
+  }
 
   /* ⑨ 予約リンク（ホットペッパー）＋公式HP */
   $('cta2').href = BOOK_URL;
